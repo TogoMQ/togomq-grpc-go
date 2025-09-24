@@ -26,7 +26,7 @@ type PubMessageRequest struct {
 	Topic         string                 `protobuf:"bytes,1,opt,name=topic,proto3" json:"topic,omitempty"`
 	Body          []byte                 `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
 	Postpone      int64                  `protobuf:"varint,3,opt,name=postpone,proto3" json:"postpone,omitempty"`
-	Expiration    int64                  `protobuf:"varint,4,opt,name=expiration,proto3" json:"expiration,omitempty"`
+	Retention     int64                  `protobuf:"varint,4,opt,name=retention,proto3" json:"retention,omitempty"`
 	Variables     map[string]string      `protobuf:"bytes,5,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -83,9 +83,9 @@ func (x *PubMessageRequest) GetPostpone() int64 {
 	return 0
 }
 
-func (x *PubMessageRequest) GetExpiration() int64 {
+func (x *PubMessageRequest) GetRetention() int64 {
 	if x != nil {
-		return x.Expiration
+		return x.Retention
 	}
 	return 0
 }
@@ -449,14 +449,12 @@ var File_mq_v1_mq_proto protoreflect.FileDescriptor
 
 const file_mq_v1_mq_proto_rawDesc = "" +
 	"\n" +
-	"\x0emq/v1/mq.proto\x12\x05mq.v1\"\xfe\x01\n" +
+	"\x0emq/v1/mq.proto\x12\x05mq.v1\"\xfc\x01\n" +
 	"\x11PubMessageRequest\x12\x14\n" +
 	"\x05topic\x18\x01 \x01(\tR\x05topic\x12\x12\n" +
 	"\x04body\x18\x02 \x01(\fR\x04body\x12\x1a\n" +
-	"\bpostpone\x18\x03 \x01(\x03R\bpostpone\x12\x1e\n" +
-	"\n" +
-	"expiration\x18\x04 \x01(\x03R\n" +
-	"expiration\x12E\n" +
+	"\bpostpone\x18\x03 \x01(\x03R\bpostpone\x12\x1c\n" +
+	"\tretention\x18\x04 \x01(\x03R\tretention\x12E\n" +
 	"\tvariables\x18\x05 \x03(\v2'.mq.v1.PubMessageRequest.VariablesEntryR\tvariables\x1a<\n" +
 	"\x0eVariablesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
