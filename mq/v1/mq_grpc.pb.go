@@ -29,8 +29,8 @@ const (
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type MqServiceClient interface {
-	PubMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[PubMessageRequest, PubMessageResponse], error)
-	SubMessage(ctx context.Context, in *SubMessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SubMessageResponse], error)
+	PubMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[PubMessageRequest, PubMessageResponse], error)
+	SubMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[SubMessageRequest, SubMessageResponse], error)
 	CountMessages(ctx context.Context, in *CountMessagesRequest, opts ...grpc.CallOption) (*CountMessagesResponse, error)
 	HealthCheck(ctx context.Context, in *HealthCheckRequest, opts ...grpc.CallOption) (*HealthCheckResponse, error)
 }
@@ -43,7 +43,7 @@ func NewMqServiceClient(cc grpc.ClientConnInterface) MqServiceClient {
 	return &mqServiceClient{cc}
 }
 
-func (c *mqServiceClient) PubMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.ClientStreamingClient[PubMessageRequest, PubMessageResponse], error) {
+func (c *mqServiceClient) PubMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[PubMessageRequest, PubMessageResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &MqService_ServiceDesc.Streams[0], MqService_PubMessage_FullMethodName, cOpts...)
 	if err != nil {
@@ -54,26 +54,20 @@ func (c *mqServiceClient) PubMessage(ctx context.Context, opts ...grpc.CallOptio
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MqService_PubMessageClient = grpc.ClientStreamingClient[PubMessageRequest, PubMessageResponse]
+type MqService_PubMessageClient = grpc.BidiStreamingClient[PubMessageRequest, PubMessageResponse]
 
-func (c *mqServiceClient) SubMessage(ctx context.Context, in *SubMessageRequest, opts ...grpc.CallOption) (grpc.ServerStreamingClient[SubMessageResponse], error) {
+func (c *mqServiceClient) SubMessage(ctx context.Context, opts ...grpc.CallOption) (grpc.BidiStreamingClient[SubMessageRequest, SubMessageResponse], error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
 	stream, err := c.cc.NewStream(ctx, &MqService_ServiceDesc.Streams[1], MqService_SubMessage_FullMethodName, cOpts...)
 	if err != nil {
 		return nil, err
 	}
 	x := &grpc.GenericClientStream[SubMessageRequest, SubMessageResponse]{ClientStream: stream}
-	if err := x.ClientStream.SendMsg(in); err != nil {
-		return nil, err
-	}
-	if err := x.ClientStream.CloseSend(); err != nil {
-		return nil, err
-	}
 	return x, nil
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MqService_SubMessageClient = grpc.ServerStreamingClient[SubMessageResponse]
+type MqService_SubMessageClient = grpc.BidiStreamingClient[SubMessageRequest, SubMessageResponse]
 
 func (c *mqServiceClient) CountMessages(ctx context.Context, in *CountMessagesRequest, opts ...grpc.CallOption) (*CountMessagesResponse, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
@@ -99,8 +93,8 @@ func (c *mqServiceClient) HealthCheck(ctx context.Context, in *HealthCheckReques
 // All implementations must embed UnimplementedMqServiceServer
 // for forward compatibility.
 type MqServiceServer interface {
-	PubMessage(grpc.ClientStreamingServer[PubMessageRequest, PubMessageResponse]) error
-	SubMessage(*SubMessageRequest, grpc.ServerStreamingServer[SubMessageResponse]) error
+	PubMessage(grpc.BidiStreamingServer[PubMessageRequest, PubMessageResponse]) error
+	SubMessage(grpc.BidiStreamingServer[SubMessageRequest, SubMessageResponse]) error
 	CountMessages(context.Context, *CountMessagesRequest) (*CountMessagesResponse, error)
 	HealthCheck(context.Context, *HealthCheckRequest) (*HealthCheckResponse, error)
 	mustEmbedUnimplementedMqServiceServer()
@@ -113,10 +107,10 @@ type MqServiceServer interface {
 // pointer dereference when methods are called.
 type UnimplementedMqServiceServer struct{}
 
-func (UnimplementedMqServiceServer) PubMessage(grpc.ClientStreamingServer[PubMessageRequest, PubMessageResponse]) error {
+func (UnimplementedMqServiceServer) PubMessage(grpc.BidiStreamingServer[PubMessageRequest, PubMessageResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method PubMessage not implemented")
 }
-func (UnimplementedMqServiceServer) SubMessage(*SubMessageRequest, grpc.ServerStreamingServer[SubMessageResponse]) error {
+func (UnimplementedMqServiceServer) SubMessage(grpc.BidiStreamingServer[SubMessageRequest, SubMessageResponse]) error {
 	return status.Errorf(codes.Unimplemented, "method SubMessage not implemented")
 }
 func (UnimplementedMqServiceServer) CountMessages(context.Context, *CountMessagesRequest) (*CountMessagesResponse, error) {
@@ -151,18 +145,14 @@ func _MqService_PubMessage_Handler(srv interface{}, stream grpc.ServerStream) er
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MqService_PubMessageServer = grpc.ClientStreamingServer[PubMessageRequest, PubMessageResponse]
+type MqService_PubMessageServer = grpc.BidiStreamingServer[PubMessageRequest, PubMessageResponse]
 
 func _MqService_SubMessage_Handler(srv interface{}, stream grpc.ServerStream) error {
-	m := new(SubMessageRequest)
-	if err := stream.RecvMsg(m); err != nil {
-		return err
-	}
-	return srv.(MqServiceServer).SubMessage(m, &grpc.GenericServerStream[SubMessageRequest, SubMessageResponse]{ServerStream: stream})
+	return srv.(MqServiceServer).SubMessage(&grpc.GenericServerStream[SubMessageRequest, SubMessageResponse]{ServerStream: stream})
 }
 
 // This type alias is provided for backwards compatibility with existing code that references the prior non-generic stream type by name.
-type MqService_SubMessageServer = grpc.ServerStreamingServer[SubMessageResponse]
+type MqService_SubMessageServer = grpc.BidiStreamingServer[SubMessageRequest, SubMessageResponse]
 
 func _MqService_CountMessages_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
 	in := new(CountMessagesRequest)
@@ -220,12 +210,14 @@ var MqService_ServiceDesc = grpc.ServiceDesc{
 		{
 			StreamName:    "PubMessage",
 			Handler:       _MqService_PubMessage_Handler,
+			ServerStreams: true,
 			ClientStreams: true,
 		},
 		{
 			StreamName:    "SubMessage",
 			Handler:       _MqService_SubMessage_Handler,
 			ServerStreams: true,
+			ClientStreams: true,
 		},
 	},
 	Metadata: "mq/v1/mq.proto",

@@ -24,10 +24,15 @@ const (
 type PubMessageRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Topic         string                 `protobuf:"bytes,1,opt,name=topic,proto3" json:"topic,omitempty"`
-	Body          []byte                 `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`
+	MsgUuid       string                 `protobuf:"bytes,2,opt,name=msg_uuid,json=msgUuid,proto3" json:"msg_uuid,omitempty"`
 	Postpone      int64                  `protobuf:"varint,3,opt,name=postpone,proto3" json:"postpone,omitempty"`
 	Retention     int64                  `protobuf:"varint,4,opt,name=retention,proto3" json:"retention,omitempty"`
 	Variables     map[string]string      `protobuf:"bytes,5,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	ChunkFirst    bool                   `protobuf:"varint,6,opt,name=chunk_first,json=chunkFirst,proto3" json:"chunk_first,omitempty"`
+	ChunkLast     bool                   `protobuf:"varint,7,opt,name=chunk_last,json=chunkLast,proto3" json:"chunk_last,omitempty"`
+	ChunkNo       int64                  `protobuf:"varint,8,opt,name=chunk_no,json=chunkNo,proto3" json:"chunk_no,omitempty"`
+	TotalSize     int64                  `protobuf:"varint,9,opt,name=total_size,json=totalSize,proto3" json:"total_size,omitempty"`
+	Data          []byte                 `protobuf:"bytes,10,opt,name=data,proto3" json:"data,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -69,11 +74,11 @@ func (x *PubMessageRequest) GetTopic() string {
 	return ""
 }
 
-func (x *PubMessageRequest) GetBody() []byte {
+func (x *PubMessageRequest) GetMsgUuid() string {
 	if x != nil {
-		return x.Body
+		return x.MsgUuid
 	}
-	return nil
+	return ""
 }
 
 func (x *PubMessageRequest) GetPostpone() int64 {
@@ -97,11 +102,48 @@ func (x *PubMessageRequest) GetVariables() map[string]string {
 	return nil
 }
 
+func (x *PubMessageRequest) GetChunkFirst() bool {
+	if x != nil {
+		return x.ChunkFirst
+	}
+	return false
+}
+
+func (x *PubMessageRequest) GetChunkLast() bool {
+	if x != nil {
+		return x.ChunkLast
+	}
+	return false
+}
+
+func (x *PubMessageRequest) GetChunkNo() int64 {
+	if x != nil {
+		return x.ChunkNo
+	}
+	return 0
+}
+
+func (x *PubMessageRequest) GetTotalSize() int64 {
+	if x != nil {
+		return x.TotalSize
+	}
+	return 0
+}
+
+func (x *PubMessageRequest) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
 type PubMessageResponse struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	MessagesReceived int64                  `protobuf:"varint,1,opt,name=messages_received,json=messagesReceived,proto3" json:"messages_received,omitempty"`
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Status        int64                  `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	No            int64                  `protobuf:"varint,2,opt,name=no,proto3" json:"no,omitempty"`
+	MsgUuid       string                 `protobuf:"bytes,3,opt,name=msg_uuid,json=msgUuid,proto3" json:"msg_uuid,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *PubMessageResponse) Reset() {
@@ -134,18 +176,35 @@ func (*PubMessageResponse) Descriptor() ([]byte, []int) {
 	return file_mq_v1_mq_proto_rawDescGZIP(), []int{1}
 }
 
-func (x *PubMessageResponse) GetMessagesReceived() int64 {
+func (x *PubMessageResponse) GetStatus() int64 {
 	if x != nil {
-		return x.MessagesReceived
+		return x.Status
 	}
 	return 0
+}
+
+func (x *PubMessageResponse) GetNo() int64 {
+	if x != nil {
+		return x.No
+	}
+	return 0
+}
+
+func (x *PubMessageResponse) GetMsgUuid() string {
+	if x != nil {
+		return x.MsgUuid
+	}
+	return ""
 }
 
 type SubMessageRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Topic         string                 `protobuf:"bytes,1,opt,name=topic,proto3" json:"topic,omitempty"` // wildcard or exact topic
-	Batch         int64                  `protobuf:"varint,2,opt,name=batch,proto3" json:"batch,omitempty"`
-	SpeedPerSec   int64                  `protobuf:"varint,3,opt,name=speed_per_sec,json=speedPerSec,proto3" json:"speed_per_sec,omitempty"`
+	FromTimestamp int64                  `protobuf:"varint,2,opt,name=from_timestamp,json=fromTimestamp,proto3" json:"from_timestamp,omitempty"`
+	ToTimestamp   int64                  `protobuf:"varint,3,opt,name=to_timestamp,json=toTimestamp,proto3" json:"to_timestamp,omitempty"`
+	MaxMessages   int64                  `protobuf:"varint,4,opt,name=max_messages,json=maxMessages,proto3" json:"max_messages,omitempty"`
+	Continuous    bool                   `protobuf:"varint,5,opt,name=continuous,proto3" json:"continuous,omitempty"`
+	AckMsgUuid    string                 `protobuf:"bytes,6,opt,name=ack_msg_uuid,json=ackMsgUuid,proto3" json:"ack_msg_uuid,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -187,26 +246,52 @@ func (x *SubMessageRequest) GetTopic() string {
 	return ""
 }
 
-func (x *SubMessageRequest) GetBatch() int64 {
+func (x *SubMessageRequest) GetFromTimestamp() int64 {
 	if x != nil {
-		return x.Batch
+		return x.FromTimestamp
 	}
 	return 0
 }
 
-func (x *SubMessageRequest) GetSpeedPerSec() int64 {
+func (x *SubMessageRequest) GetToTimestamp() int64 {
 	if x != nil {
-		return x.SpeedPerSec
+		return x.ToTimestamp
 	}
 	return 0
+}
+
+func (x *SubMessageRequest) GetMaxMessages() int64 {
+	if x != nil {
+		return x.MaxMessages
+	}
+	return 0
+}
+
+func (x *SubMessageRequest) GetContinuous() bool {
+	if x != nil {
+		return x.Continuous
+	}
+	return false
+}
+
+func (x *SubMessageRequest) GetAckMsgUuid() string {
+	if x != nil {
+		return x.AckMsgUuid
+	}
+	return ""
 }
 
 type SubMessageResponse struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Topic         string                 `protobuf:"bytes,1,opt,name=topic,proto3" json:"topic,omitempty"`
-	Uuid          string                 `protobuf:"bytes,2,opt,name=uuid,proto3" json:"uuid,omitempty"`
-	Body          []byte                 `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`
-	Variables     map[string]string      `protobuf:"bytes,4,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	Status        int64                  `protobuf:"varint,1,opt,name=status,proto3" json:"status,omitempty"`
+	MsgUuid       string                 `protobuf:"bytes,2,opt,name=msg_uuid,json=msgUuid,proto3" json:"msg_uuid,omitempty"`
+	Variables     map[string]string      `protobuf:"bytes,3,rep,name=variables,proto3" json:"variables,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"bytes,2,opt,name=value"`
+	ChunkLast     bool                   `protobuf:"varint,4,opt,name=chunk_last,json=chunkLast,proto3" json:"chunk_last,omitempty"`
+	ChunkNo       int64                  `protobuf:"varint,5,opt,name=chunk_no,json=chunkNo,proto3" json:"chunk_no,omitempty"`
+	TotalSize     int64                  `protobuf:"varint,6,opt,name=total_size,json=totalSize,proto3" json:"total_size,omitempty"`
+	Data          []byte                 `protobuf:"bytes,7,opt,name=data,proto3" json:"data,omitempty"`
+	Timestamp     int64                  `protobuf:"varint,8,opt,name=timestamp,proto3" json:"timestamp,omitempty"`
+	EndOfStream   bool                   `protobuf:"varint,9,opt,name=end_of_stream,json=endOfStream,proto3" json:"end_of_stream,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -241,25 +326,18 @@ func (*SubMessageResponse) Descriptor() ([]byte, []int) {
 	return file_mq_v1_mq_proto_rawDescGZIP(), []int{3}
 }
 
-func (x *SubMessageResponse) GetTopic() string {
+func (x *SubMessageResponse) GetStatus() int64 {
 	if x != nil {
-		return x.Topic
+		return x.Status
 	}
-	return ""
+	return 0
 }
 
-func (x *SubMessageResponse) GetUuid() string {
+func (x *SubMessageResponse) GetMsgUuid() string {
 	if x != nil {
-		return x.Uuid
+		return x.MsgUuid
 	}
 	return ""
-}
-
-func (x *SubMessageResponse) GetBody() []byte {
-	if x != nil {
-		return x.Body
-	}
-	return nil
 }
 
 func (x *SubMessageResponse) GetVariables() map[string]string {
@@ -267,6 +345,48 @@ func (x *SubMessageResponse) GetVariables() map[string]string {
 		return x.Variables
 	}
 	return nil
+}
+
+func (x *SubMessageResponse) GetChunkLast() bool {
+	if x != nil {
+		return x.ChunkLast
+	}
+	return false
+}
+
+func (x *SubMessageResponse) GetChunkNo() int64 {
+	if x != nil {
+		return x.ChunkNo
+	}
+	return 0
+}
+
+func (x *SubMessageResponse) GetTotalSize() int64 {
+	if x != nil {
+		return x.TotalSize
+	}
+	return 0
+}
+
+func (x *SubMessageResponse) GetData() []byte {
+	if x != nil {
+		return x.Data
+	}
+	return nil
+}
+
+func (x *SubMessageResponse) GetTimestamp() int64 {
+	if x != nil {
+		return x.Timestamp
+	}
+	return 0
+}
+
+func (x *SubMessageResponse) GetEndOfStream() bool {
+	if x != nil {
+		return x.EndOfStream
+	}
+	return false
 }
 
 type CountMessagesRequest struct {
@@ -449,27 +569,51 @@ var File_mq_v1_mq_proto protoreflect.FileDescriptor
 
 const file_mq_v1_mq_proto_rawDesc = "" +
 	"\n" +
-	"\x0emq/v1/mq.proto\x12\x05mq.v1\"\xfc\x01\n" +
+	"\x0emq/v1/mq.proto\x12\x05mq.v1\"\x91\x03\n" +
 	"\x11PubMessageRequest\x12\x14\n" +
-	"\x05topic\x18\x01 \x01(\tR\x05topic\x12\x12\n" +
-	"\x04body\x18\x02 \x01(\fR\x04body\x12\x1a\n" +
+	"\x05topic\x18\x01 \x01(\tR\x05topic\x12\x19\n" +
+	"\bmsg_uuid\x18\x02 \x01(\tR\amsgUuid\x12\x1a\n" +
 	"\bpostpone\x18\x03 \x01(\x03R\bpostpone\x12\x1c\n" +
 	"\tretention\x18\x04 \x01(\x03R\tretention\x12E\n" +
-	"\tvariables\x18\x05 \x03(\v2'.mq.v1.PubMessageRequest.VariablesEntryR\tvariables\x1a<\n" +
+	"\tvariables\x18\x05 \x03(\v2'.mq.v1.PubMessageRequest.VariablesEntryR\tvariables\x12\x1f\n" +
+	"\vchunk_first\x18\x06 \x01(\bR\n" +
+	"chunkFirst\x12\x1d\n" +
+	"\n" +
+	"chunk_last\x18\a \x01(\bR\tchunkLast\x12\x19\n" +
+	"\bchunk_no\x18\b \x01(\x03R\achunkNo\x12\x1d\n" +
+	"\n" +
+	"total_size\x18\t \x01(\x03R\ttotalSize\x12\x12\n" +
+	"\x04data\x18\n" +
+	" \x01(\fR\x04data\x1a<\n" +
 	"\x0eVariablesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
-	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"A\n" +
-	"\x12PubMessageResponse\x12+\n" +
-	"\x11messages_received\x18\x01 \x01(\x03R\x10messagesReceived\"c\n" +
+	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\"W\n" +
+	"\x12PubMessageResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\x03R\x06status\x12\x0e\n" +
+	"\x02no\x18\x02 \x01(\x03R\x02no\x12\x19\n" +
+	"\bmsg_uuid\x18\x03 \x01(\tR\amsgUuid\"\xd8\x01\n" +
 	"\x11SubMessageRequest\x12\x14\n" +
-	"\x05topic\x18\x01 \x01(\tR\x05topic\x12\x14\n" +
-	"\x05batch\x18\x02 \x01(\x03R\x05batch\x12\"\n" +
-	"\rspeed_per_sec\x18\x03 \x01(\x03R\vspeedPerSec\"\xd8\x01\n" +
-	"\x12SubMessageResponse\x12\x14\n" +
-	"\x05topic\x18\x01 \x01(\tR\x05topic\x12\x12\n" +
-	"\x04uuid\x18\x02 \x01(\tR\x04uuid\x12\x12\n" +
-	"\x04body\x18\x03 \x01(\fR\x04body\x12F\n" +
-	"\tvariables\x18\x04 \x03(\v2(.mq.v1.SubMessageResponse.VariablesEntryR\tvariables\x1a<\n" +
+	"\x05topic\x18\x01 \x01(\tR\x05topic\x12%\n" +
+	"\x0efrom_timestamp\x18\x02 \x01(\x03R\rfromTimestamp\x12!\n" +
+	"\fto_timestamp\x18\x03 \x01(\x03R\vtoTimestamp\x12!\n" +
+	"\fmax_messages\x18\x04 \x01(\x03R\vmaxMessages\x12\x1e\n" +
+	"\n" +
+	"continuous\x18\x05 \x01(\bR\n" +
+	"continuous\x12 \n" +
+	"\fack_msg_uuid\x18\x06 \x01(\tR\n" +
+	"ackMsgUuid\"\xfc\x02\n" +
+	"\x12SubMessageResponse\x12\x16\n" +
+	"\x06status\x18\x01 \x01(\x03R\x06status\x12\x19\n" +
+	"\bmsg_uuid\x18\x02 \x01(\tR\amsgUuid\x12F\n" +
+	"\tvariables\x18\x03 \x03(\v2(.mq.v1.SubMessageResponse.VariablesEntryR\tvariables\x12\x1d\n" +
+	"\n" +
+	"chunk_last\x18\x04 \x01(\bR\tchunkLast\x12\x19\n" +
+	"\bchunk_no\x18\x05 \x01(\x03R\achunkNo\x12\x1d\n" +
+	"\n" +
+	"total_size\x18\x06 \x01(\x03R\ttotalSize\x12\x12\n" +
+	"\x04data\x18\a \x01(\fR\x04data\x12\x1c\n" +
+	"\ttimestamp\x18\b \x01(\x03R\ttimestamp\x12\"\n" +
+	"\rend_of_stream\x18\t \x01(\bR\vendOfStream\x1a<\n" +
 	"\x0eVariablesEntry\x12\x10\n" +
 	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
 	"\x05value\x18\x02 \x01(\tR\x05value:\x028\x01\",\n" +
@@ -480,12 +624,12 @@ const file_mq_v1_mq_proto_rawDesc = "" +
 	"\x12HealthCheckRequest\x12\x18\n" +
 	"\amessage\x18\x01 \x01(\tR\amessage\"+\n" +
 	"\x13HealthCheckResponse\x12\x14\n" +
-	"\x05alive\x18\x01 \x01(\bR\x05alive2\xaf\x02\n" +
-	"\tMqService\x12E\n" +
+	"\x05alive\x18\x01 \x01(\bR\x05alive2\xb3\x02\n" +
+	"\tMqService\x12G\n" +
 	"\n" +
-	"PubMessage\x12\x18.mq.v1.PubMessageRequest\x1a\x19.mq.v1.PubMessageResponse\"\x00(\x01\x12E\n" +
+	"PubMessage\x12\x18.mq.v1.PubMessageRequest\x1a\x19.mq.v1.PubMessageResponse\"\x00(\x010\x01\x12G\n" +
 	"\n" +
-	"SubMessage\x12\x18.mq.v1.SubMessageRequest\x1a\x19.mq.v1.SubMessageResponse\"\x000\x01\x12L\n" +
+	"SubMessage\x12\x18.mq.v1.SubMessageRequest\x1a\x19.mq.v1.SubMessageResponse\"\x00(\x010\x01\x12L\n" +
 	"\rCountMessages\x12\x1b.mq.v1.CountMessagesRequest\x1a\x1c.mq.v1.CountMessagesResponse\"\x00\x12F\n" +
 	"\vHealthCheck\x12\x19.mq.v1.HealthCheckRequest\x1a\x1a.mq.v1.HealthCheckResponse\"\x00Bv\n" +
 	"\tcom.mq.v1B\aMqProtoP\x01Z+github.com/TogoMQ/togomq-grpc-go/mq/v1;mqv1\xa2\x02\x03MXX\xaa\x02\x05Mq.V1\xca\x02\x05Mq\\V1\xe2\x02\x11Mq\\V1\\GPBMetadata\xea\x02\x06Mq::V1b\x06proto3"

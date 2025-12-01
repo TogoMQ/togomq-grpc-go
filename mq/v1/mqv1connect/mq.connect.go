@@ -45,8 +45,8 @@ const (
 
 // MqServiceClient is a client for the mq.v1.MqService service.
 type MqServiceClient interface {
-	PubMessage(context.Context) *connect.ClientStreamForClient[v1.PubMessageRequest, v1.PubMessageResponse]
-	SubMessage(context.Context, *connect.Request[v1.SubMessageRequest]) (*connect.ServerStreamForClient[v1.SubMessageResponse], error)
+	PubMessage(context.Context) *connect.BidiStreamForClient[v1.PubMessageRequest, v1.PubMessageResponse]
+	SubMessage(context.Context) *connect.BidiStreamForClient[v1.SubMessageRequest, v1.SubMessageResponse]
 	CountMessages(context.Context, *connect.Request[v1.CountMessagesRequest]) (*connect.Response[v1.CountMessagesResponse], error)
 	HealthCheck(context.Context, *connect.Request[v1.HealthCheckRequest]) (*connect.Response[v1.HealthCheckResponse], error)
 }
@@ -98,13 +98,13 @@ type mqServiceClient struct {
 }
 
 // PubMessage calls mq.v1.MqService.PubMessage.
-func (c *mqServiceClient) PubMessage(ctx context.Context) *connect.ClientStreamForClient[v1.PubMessageRequest, v1.PubMessageResponse] {
-	return c.pubMessage.CallClientStream(ctx)
+func (c *mqServiceClient) PubMessage(ctx context.Context) *connect.BidiStreamForClient[v1.PubMessageRequest, v1.PubMessageResponse] {
+	return c.pubMessage.CallBidiStream(ctx)
 }
 
 // SubMessage calls mq.v1.MqService.SubMessage.
-func (c *mqServiceClient) SubMessage(ctx context.Context, req *connect.Request[v1.SubMessageRequest]) (*connect.ServerStreamForClient[v1.SubMessageResponse], error) {
-	return c.subMessage.CallServerStream(ctx, req)
+func (c *mqServiceClient) SubMessage(ctx context.Context) *connect.BidiStreamForClient[v1.SubMessageRequest, v1.SubMessageResponse] {
+	return c.subMessage.CallBidiStream(ctx)
 }
 
 // CountMessages calls mq.v1.MqService.CountMessages.
@@ -119,8 +119,8 @@ func (c *mqServiceClient) HealthCheck(ctx context.Context, req *connect.Request[
 
 // MqServiceHandler is an implementation of the mq.v1.MqService service.
 type MqServiceHandler interface {
-	PubMessage(context.Context, *connect.ClientStream[v1.PubMessageRequest]) (*connect.Response[v1.PubMessageResponse], error)
-	SubMessage(context.Context, *connect.Request[v1.SubMessageRequest], *connect.ServerStream[v1.SubMessageResponse]) error
+	PubMessage(context.Context, *connect.BidiStream[v1.PubMessageRequest, v1.PubMessageResponse]) error
+	SubMessage(context.Context, *connect.BidiStream[v1.SubMessageRequest, v1.SubMessageResponse]) error
 	CountMessages(context.Context, *connect.Request[v1.CountMessagesRequest]) (*connect.Response[v1.CountMessagesResponse], error)
 	HealthCheck(context.Context, *connect.Request[v1.HealthCheckRequest]) (*connect.Response[v1.HealthCheckResponse], error)
 }
@@ -132,13 +132,13 @@ type MqServiceHandler interface {
 // and JSON codecs. They also support gzip compression.
 func NewMqServiceHandler(svc MqServiceHandler, opts ...connect.HandlerOption) (string, http.Handler) {
 	mqServiceMethods := v1.File_mq_v1_mq_proto.Services().ByName("MqService").Methods()
-	mqServicePubMessageHandler := connect.NewClientStreamHandler(
+	mqServicePubMessageHandler := connect.NewBidiStreamHandler(
 		MqServicePubMessageProcedure,
 		svc.PubMessage,
 		connect.WithSchema(mqServiceMethods.ByName("PubMessage")),
 		connect.WithHandlerOptions(opts...),
 	)
-	mqServiceSubMessageHandler := connect.NewServerStreamHandler(
+	mqServiceSubMessageHandler := connect.NewBidiStreamHandler(
 		MqServiceSubMessageProcedure,
 		svc.SubMessage,
 		connect.WithSchema(mqServiceMethods.ByName("SubMessage")),
@@ -175,11 +175,11 @@ func NewMqServiceHandler(svc MqServiceHandler, opts ...connect.HandlerOption) (s
 // UnimplementedMqServiceHandler returns CodeUnimplemented from all methods.
 type UnimplementedMqServiceHandler struct{}
 
-func (UnimplementedMqServiceHandler) PubMessage(context.Context, *connect.ClientStream[v1.PubMessageRequest]) (*connect.Response[v1.PubMessageResponse], error) {
-	return nil, connect.NewError(connect.CodeUnimplemented, errors.New("mq.v1.MqService.PubMessage is not implemented"))
+func (UnimplementedMqServiceHandler) PubMessage(context.Context, *connect.BidiStream[v1.PubMessageRequest, v1.PubMessageResponse]) error {
+	return connect.NewError(connect.CodeUnimplemented, errors.New("mq.v1.MqService.PubMessage is not implemented"))
 }
 
-func (UnimplementedMqServiceHandler) SubMessage(context.Context, *connect.Request[v1.SubMessageRequest], *connect.ServerStream[v1.SubMessageResponse]) error {
+func (UnimplementedMqServiceHandler) SubMessage(context.Context, *connect.BidiStream[v1.SubMessageRequest, v1.SubMessageResponse]) error {
 	return connect.NewError(connect.CodeUnimplemented, errors.New("mq.v1.MqService.SubMessage is not implemented"))
 }
 
